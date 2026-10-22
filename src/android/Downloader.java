@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.LauncherApps;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -65,7 +66,7 @@ public class Downloader extends CordovaPlugin {
       downloadReceiverCallbackContext = callbackContext;
 
       if(action.equals("download")){
-          if(cordova.hasPermission(WRITE_EXTERNAL_STORAGE)){
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || cordova.hasPermission(WRITE_EXTERNAL_STORAGE)) {
               download(args.getJSONObject(0), callbackContext);
           }
           else {
@@ -86,7 +87,11 @@ public class Downloader extends CordovaPlugin {
 
     IntentFilter intentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
 
-    webView.getContext().registerReceiver(downloadReceiver, intentFilter);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      webView.getContext().registerReceiver(downloadReceiver, intentFilter, Context.RECEIVER_EXPORTED);
+    } else {
+      webView.getContext().registerReceiver(downloadReceiver, intentFilter);
+    }
 
     this.downloadId = downloadManager.enqueue(request);
       
